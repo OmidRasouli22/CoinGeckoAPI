@@ -1,12 +1,13 @@
-from pydantic import BaseModel
+class Coin:
+    """
+    Simple internal Coin object used in the application.
 
-# This class defines the "shape" of a Coin object
-class Coin(BaseModel):
-    # Unique identifier of the coin
-    id: str
+    """
 
-    # Short symbol of the coin
-    symbol: str
+    def __init__(self, id: str, symbol: str, name: str):
+        self.id = id
+        self.symbol = symbol
+        self.name = name
 
-    # Full readable name of the coin
-    name: str
+    def __repr__(self):
+        return f"Coin(id={self.id}, symbol={self.symbol}, name={self.name})"
