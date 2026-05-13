@@ -7,16 +7,14 @@ import os
 def save_rejected_records(rejected_records, file_format="json"):
     """
     Saves rejected records into a file.
-
-    Args:
-        rejected_records: list of rejected items
-        file_format: "json" or "csv"
     """
 
-    # Create output folder if not exists
+    if not rejected_records:
+        print("No rejected records to save.")
+        return
+
     os.makedirs("data", exist_ok=True)
 
-    # Add timestamp to avoid overwriting files
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     if file_format == "json":
@@ -30,21 +28,20 @@ def save_rejected_records(rejected_records, file_format="json"):
     elif file_format == "csv":
         filename = f"data/rejected_{timestamp}.csv"
 
-        # Flatten structure for CSV
         with open(filename, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
 
-            # Header
             writer.writerow(["id", "symbol", "name", "reason"])
 
             for record in rejected_records:
-                item = record["item"]
+                item = record.get("item", {})
+                reason = record.get("reason", "")
 
                 writer.writerow([
                     item.get("id"),
                     item.get("symbol"),
                     item.get("name"),
-                    record["reason"]
+                    reason
                 ])
 
         print(f"Rejected records saved to {filename}")
