@@ -74,7 +74,7 @@ def transform_coins(raw_data):
 
             cleaned_coins.append(coin)
 
-        except Exception:
+        except Exception as e:
             rejected_records.append({
                 "item": item,
                 "reason": str(e)
@@ -86,4 +86,4 @@ def transform_coins(raw_data):
     logger.info(f"Total valid coins: {len(cleaned_coins)}")
     logger.info(f"Total rejected coins: {len(rejected_records)}")
     
-    return cleaned_coins
+    return cleaned_coins, rejected_records
