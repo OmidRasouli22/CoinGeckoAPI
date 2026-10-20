@@ -10,8 +10,8 @@ def test_fetch_coins_success(mocker):
 
     # Mock requests.get
     mock_response = mocker.Mock()
+    mock_response.status_code = 200
     mock_response.json.return_value = mock_data
-    mock_response.raise_for_status.return_value = None
 
     mocker.patch("ingestion.coingecko_api.requests.get", return_value=mock_response)
 
@@ -23,7 +23,7 @@ def test_fetch_coins_success(mocker):
     
 def test_fetch_coins_api_failure(mocker):
     mock_response = mocker.Mock()
-    mock_response.raise_for_status.side_effect = Exception("API error")
+    mock_response.status_code = 500
 
     mocker.patch("ingestion.coingecko_api.requests.get", return_value=mock_response)
 
@@ -33,11 +33,26 @@ def test_fetch_coins_api_failure(mocker):
 
 def test_fetch_coins_empty_response(mocker):
     mock_response = mocker.Mock()
+    mock_response.status_code = 200
     mock_response.json.return_value = []
-    mock_response.raise_for_status.return_value = None
 
     mocker.patch("ingestion.coingecko_api.requests.get", return_value=mock_response)
 
     result = get_coin_list()
 
     assert result == []
+
+
+def test_fetch_coins_retries_when_rate_limited(mocker):
+    limited = mocker.Mock(status_code=429)
+    ok = mocker.Mock(status_code=200)
+    ok.json.return_value = [{"id": "bitcoin", "symbol": "btc", "name": "Bitcoin"}]
+
+    get = mocker.patch("ingestion.coingecko_api.requests.get", side_effect=[limited, ok])
+    sleep = mocker.patch("ingestion.coingecko_api.time.sleep")
+
+    result = get_coin_list()
+
+    assert result[0]["id"] == "bitcoin"
+    assert get.call_count == 2
+    sleep.assert_called_once_with(1)
